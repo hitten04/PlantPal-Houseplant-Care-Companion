@@ -1,12 +1,15 @@
 'use client';
 
-import { useChat } from 'ai/react';
+import { useChat } from '@ai-sdk/react';
 import { Leaf, Send, Loader2, Sprout } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function Home() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat();
+  const { messages, sendMessage, error, status } = useChat();
+  const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  const isLoading = status === 'streaming';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -15,6 +18,18 @@ export default function Home() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (input.trim()) {
+      await sendMessage({ text: input });
+      setInput('');
+    }
+  };
+
+  const handleSuggestionClick = async (suggestion: string) => {
+    await sendMessage({ text: suggestion });
+  };
 
   return (
     <main className="flex min-h-screen flex-col items-center p-4 md:p-8">
@@ -51,9 +66,7 @@ export default function Home() {
                 ].map((suggestion, i) => (
                   <button
                     key={i}
-                    onClick={() => {
-                      handleInputChange({ target: { value: suggestion } } as any);
-                    }}
+                    onClick={() => handleSuggestionClick(suggestion)}
                     className="p-3 text-left text-sm bg-white border-2 border-leaf-200 rounded-lg hover:border-leaf-400 hover:bg-leaf-50 transition-colors"
                   >
                     {suggestion}
@@ -63,7 +76,11 @@ export default function Home() {
             </div>
           )}
 
-          {messages.map((message) => (
+          {messages.map((message) => {
+            const messageText = ('text' in message ? message.text : 
+                               'content' in message ? (typeof message.content === 'string' ? message.content : '') : '') as string;
+            
+            return (
             <div
               key={message.id}
               className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -81,10 +98,11 @@ export default function Home() {
                     <span className="text-xs font-semibold text-leaf-700">PlantPal</span>
                   </div>
                 )}
-                <p className="whitespace-pre-wrap">{message.content}</p>
+                <p className="whitespace-pre-wrap">{messageText}</p>
               </div>
             </div>
-          ))}
+            );
+          })}
 
           {isLoading && (
             <div className="flex justify-start">
@@ -112,7 +130,7 @@ export default function Home() {
         <form onSubmit={handleSubmit} className="flex gap-2">
           <input
             value={input}
-            onChange={handleInputChange}
+            onChange={(e) => setInput(e.target.value)}
             placeholder="Ask about your plants..."
             className="flex-1 px-4 py-3 rounded-full border-2 border-leaf-300 focus:border-leaf-500 focus:outline-none bg-white text-leaf-900 placeholder-leaf-400"
             disabled={isLoading}

@@ -1,7 +1,5 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { GoogleGenerativeAIStream, StreamingTextResponse } from 'ai';
-
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || '');
+import { google } from '@ai-sdk/google';
+import { streamText } from 'ai';
 
 export const runtime = 'edge';
 
@@ -74,38 +72,14 @@ export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-
-    // Convert messages to Gemini format
-    const chatHistory = messages.slice(0, -1).map((msg: any) => ({
-      role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.content }],
-    }));
-
-    const lastMessage = messages[messages.length - 1];
-
-    const chat = model.startChat({
-      history: [
-        {
-          role: 'user',
-          parts: [{ text: 'System instructions: ' + systemPrompt }],
-        },
-        {
-          role: 'model',
-          parts: [{ text: 'Understood! I am PlantPal, ready to help with houseplant care.' }],
-        },
-        ...chatHistory,
-      ],
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 400,
-      },
+    const result = streamText({
+      model: google('gemini-pro'),
+      system: systemPrompt,
+      messages,
+      temperature: 0.7,
     });
 
-    const result = await chat.sendMessageStream(lastMessage.content);
-    const stream = GoogleGenerativeAIStream(result);
-    
-    return new StreamingTextResponse(stream);
+    return result.toTextStreamResponse();
   } catch (error) {
     console.error('Chat API Error:', error);
     return new Response('Error processing chat request', { status: 500 });
