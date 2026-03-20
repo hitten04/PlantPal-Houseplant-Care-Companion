@@ -9,7 +9,7 @@ export default function Home() {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  const isLoading = status === 'streaming' || status === 'awaiting-message';
+  const isLoading = status === 'submitted';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
