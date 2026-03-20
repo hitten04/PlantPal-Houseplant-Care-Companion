@@ -72,16 +72,35 @@ export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
 
-    const result = streamText({
-      model: google('gemini-pro'),
+    // Convert messages to simple format
+    const formattedMessages = messages.map((msg: any) => {
+      let content = '';
+      if (msg.parts && Array.isArray(msg.parts)) {
+        content = msg.parts.map((p: any) => p.text).join('');
+      } else if (msg.content) {
+        content = msg.content;
+      } else if (msg.text) {
+        content = msg.text;
+      }
+      return {
+        role: msg.role,
+        content,
+      };
+    });
+
+    const result = await streamText({
+      model: google('gemini-2.5-flash-lite'),
       system: systemPrompt,
-      messages,
+      messages: formattedMessages,
       temperature: 0.7,
     });
 
-    return result.toTextStreamResponse();
+    return result.toUIMessageStreamResponse();
   } catch (error) {
     console.error('Chat API Error:', error);
-    return new Response('Error processing chat request', { status: 500 });
+    return new Response(JSON.stringify({ error: 'Error processing chat request' }), { 
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 }

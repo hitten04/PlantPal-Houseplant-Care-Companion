@@ -9,15 +9,17 @@ export default function Home() {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  const isLoading = status === 'streaming';
+  const isLoading = status === 'streaming' || status === 'awaiting-message';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
+    console.log('Messages:', messages);
+    console.log('Status:', status);
     scrollToBottom();
-  }, [messages]);
+  }, [messages, status]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,8 +79,23 @@ export default function Home() {
           )}
 
           {messages.map((message) => {
-            const messageText = ('text' in message ? message.text : 
-                               'content' in message ? (typeof message.content === 'string' ? message.content : '') : '') as string;
+            // Extract text from message - AI SDK v6 uses parts array
+            let messageText = '';
+            
+            console.log('Message object:', message);
+            
+            if ('parts' in message && Array.isArray(message.parts)) {
+              messageText = message.parts
+                .filter((part: any) => part.type === 'text')
+                .map((part: any) => part.text)
+                .join('');
+            } else if ('text' in message) {
+              messageText = message.text as string;
+            } else if ('content' in message && typeof message.content === 'string') {
+              messageText = message.content;
+            }
+            
+            console.log('Extracted text:', messageText);
             
             return (
             <div
@@ -98,7 +115,7 @@ export default function Home() {
                     <span className="text-xs font-semibold text-leaf-700">PlantPal</span>
                   </div>
                 )}
-                <p className="whitespace-pre-wrap">{messageText}</p>
+                <p className="whitespace-pre-wrap">{messageText || JSON.stringify(message)}</p>
               </div>
             </div>
             );

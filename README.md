@@ -38,7 +38,7 @@ I chose houseplants as the topic because:
 
 3. Create a `.env` file with your Google Gemini API key:
    ```
-   GOOGLE_GEMINI_API_KEY=your_key_here
+   GOOGLE_GENERATIVE_AI_API_KEY=your_key_here
    ```
    
    Get your API key from: https://makersuite.google.com/app/apikey
@@ -55,7 +55,7 @@ I chose houseplants as the topic because:
 Deploy to Vercel with one click:
 1. Push to GitHub
 2. Import to Vercel
-3. Add `GOOGLE_GEMINI_API_KEY` environment variable
+3. Add `GOOGLE_GENERATIVE_AI_API_KEY` environment variable
 4. Deploy
 
 ## Frontend Thinking Highlights
