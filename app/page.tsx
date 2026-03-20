@@ -39,7 +39,7 @@ export default function Home() {
                 Welcome to PlantPal!
               </h2>
               <p className="text-leaf-600 mb-6 max-w-md">
-                I'm here to help you care for your houseplants. Ask me about watering schedules, 
+                I&apos;m here to help you care for your houseplants. Ask me about watering schedules, 
                 light requirements, pest problems, or any plant care questions you have.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl">
